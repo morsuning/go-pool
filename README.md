@@ -59,7 +59,7 @@ func main() {
     defer pool.Release()
 
     for i := 0; i < 1000; i++ {
-        pool.AddTask(func() (interface{}, error){
+        pool.AddTask(func() (any, error){
             time.Sleep(10 * time.Millisecond)
             return nil, nil
         })
@@ -85,7 +85,7 @@ func main() {
     defer pool.Release()
 
     for i := 0; i < 1000; i++ {
-        pool.AddTask(func() (interface{}, error){
+        pool.AddTask(func() (any, error){
             time.Sleep(10 * time.Millisecond)
             return nil, nil
         })
@@ -114,7 +114,7 @@ func main() {
     defer pool.Release()
 
     for i := 0; i < 1000; i++ {
-        pool.AddTask(func() (interface{}, error){
+        pool.AddTask(func() (any, error){
             time.Sleep(10 * time.Millisecond)
             return nil, nil
         })
@@ -143,7 +143,7 @@ func main() {
     defer pool.Release()
 
     for i := 0; i < 1000; i++ {
-        pool.AddTask(func() (interface{}, error){
+        pool.AddTask(func() (any, error){
             time.Sleep(10 * time.Millisecond)
             return nil, nil
         })
@@ -174,7 +174,7 @@ func main() {
     defer pool.Release()
 
     for i := 0; i < 1000; i++ {
-        pool.AddTask(func() (interface{}, error) {
+        pool.AddTask(func() (any, error) {
             time.Sleep(2 * time.Second)
             return nil, nil
         })
@@ -208,7 +208,7 @@ func main() {
     defer pool.Release()
 
     for i := 0; i < 1000; i++ {
-        pool.AddTask(func() (interface{}, error) {
+        pool.AddTask(func() (any, error) {
             return nil, errors.New("task error")
         })
     }
@@ -234,13 +234,13 @@ import (
 )
 
 func main() {
-    pool := go-pool.NewGoPool(100, gopool.WithResultCallback(func(result interface{}) {
+    pool := go-pool.NewGoPool(100, gopool.WithResultCallback(func(result any) {
         fmt.Println("Task result:", result)
     }))
     defer pool.Release()
 
     for i := 0; i < 1000; i++ {
-        pool.AddTask(func() (interface{}, error) {
+        pool.AddTask(func() (any, error) {
             return "task result", nil
         })
     }
@@ -271,7 +271,7 @@ func main() {
     defer pool.Release()
 
     for i := 0; i < 1000; i++ {
-        pool.AddTask(func() (interface{}, error) {
+        pool.AddTask(func() (any, error) {
             return nil, errors.New("task error")
         })
     }

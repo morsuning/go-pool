@@ -18,7 +18,7 @@ var _ = Describe("Gopool", func() {
 			pool := gopool.NewGoPool(100, gopool.WithLock(new(sync.Mutex)))
 			defer pool.Release()
 			for i := 0; i < 1000; i++ {
-				pool.AddTask(func() (interface{}, error) {
+				pool.AddTask(func() (any, error) {
 					time.Sleep(10 * time.Millisecond)
 					return nil, nil
 				})
@@ -32,7 +32,7 @@ var _ = Describe("Gopool", func() {
 			pool := gopool.NewGoPool(100, gopool.WithLock(new(spinlock.SpinLock)))
 			defer pool.Release()
 			for i := 0; i < 1000; i++ {
-				pool.AddTask(func() (interface{}, error) {
+				pool.AddTask(func() (any, error) {
 					time.Sleep(10 * time.Millisecond)
 					return nil, nil
 				})
@@ -50,7 +50,7 @@ var _ = Describe("Gopool", func() {
 			defer pool.Release()
 
 			for i := 0; i < 1000; i++ {
-				pool.AddTask(func() (interface{}, error) {
+				pool.AddTask(func() (any, error) {
 					return nil, errTaskError
 				})
 			}
@@ -61,13 +61,13 @@ var _ = Describe("Gopool", func() {
 	Describe("With Result", func() {
 		It("should work correctly", func() {
 			var expectedResult = "task result"
-			pool := gopool.NewGoPool(100, gopool.WithResultCallback(func(result interface{}) {
+			pool := gopool.NewGoPool(100, gopool.WithResultCallback(func(result any) {
 				Expect(result).To(Equal(expectedResult))
 			}))
 			defer pool.Release()
 
 			for i := 0; i < 1000; i++ {
-				pool.AddTask(func() (interface{}, error) {
+				pool.AddTask(func() (any, error) {
 					return expectedResult, nil
 				})
 			}
@@ -84,7 +84,7 @@ var _ = Describe("Gopool", func() {
 			pool := gopool.NewGoPool(100, gopool.WithRetryCount(int(retryCount)))
 			defer pool.Release()
 
-			pool.AddTask(func() (interface{}, error) {
+			pool.AddTask(func() (any, error) {
 				atomic.AddInt32(&taskRunCount, 1)
 				if taskRunCount <= retryCount {
 					return nil, taskError
@@ -108,7 +108,7 @@ var _ = Describe("Gopool", func() {
 			}))
 			defer pool.Release()
 
-			pool.AddTask(func() (interface{}, error) {
+			pool.AddTask(func() (any, error) {
 				time.Sleep(200 * time.Millisecond)
 				return nil, nil
 			})

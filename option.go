@@ -31,7 +31,7 @@ func WithTimeout(timeout time.Duration) Option {
 }
 
 // WithResultCallback sets the result callback for the pool.
-func WithResultCallback(callback func(interface{})) Option {
+func WithResultCallback(callback func(any)) Option {
 	return func(p *goPool) {
 		p.resultCallback = callback
 	}

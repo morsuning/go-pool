@@ -19,7 +19,7 @@ func BenchmarkGoPool(b *testing.B) {
 	pool := NewGoPool(PoolSize)
 	defer pool.Release()
 
-	taskFunc := func() (interface{}, error) {
+	taskFunc := func() (any, error) {
 		time.Sleep(10 * time.Millisecond)
 		return nil, nil
 	}
@@ -38,7 +38,7 @@ func BenchmarkGoPoolWithSpinLock(b *testing.B) {
 	pool := NewGoPool(PoolSize, WithLock(new(spinlock.SpinLock)))
 	defer pool.Release()
 
-	taskFunc := func() (interface{}, error) {
+	taskFunc := func() (any, error) {
 		time.Sleep(10 * time.Millisecond)
 		return nil, nil
 	}
@@ -61,7 +61,7 @@ func BenchmarkGoroutines(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		wg.Add(taskNum)
 		for num := 0; num < taskNum; num++ {
-			go func() (interface{}, error) {
+			go func() (any, error) {
 				time.Sleep(10 * time.Millisecond)
 				wg.Done()
 				return nil, nil

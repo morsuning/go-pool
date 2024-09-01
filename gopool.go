@@ -7,13 +7,12 @@ import (
 	"time"
 )
 
-// GoPool represents a pool of workers.
 type GoPool interface {
 	// AddTask adds a task to the pool.
 	AddTask(t task)
 	// Wait waits for all tasks to be dispatched and completed.
 	Wait()
-	// Release releases the pool and all its workers.
+	// Release the pool and all its workers.
 	Release()
 	// GetRunning returns the number of running workers.
 	Running() int
@@ -25,7 +24,7 @@ type GoPool interface {
 
 // task represents a function that will be executed by a worker.
 // It returns a result and an error.
-type task func() (interface{}, error)
+type task func() (any, error)
 
 // goPool represents a pool of workers.
 type goPool struct {
@@ -45,7 +44,7 @@ type goPool struct {
 	// Set by WithTimeout(), used to set a timeout for a task. Default is 0, which means no timeout.
 	timeout time.Duration
 	// Set by WithResultCallback(), used to handle the result of a task. Default is nil.
-	resultCallback func(interface{})
+	resultCallback func(any)
 	// Set by WithErrorCallback(), used to handle the error of a task. Default is nil.
 	errorCallback func(error)
 	// adjustInterval is the interval to adjust the number of workers. Default is 1 second.
@@ -203,13 +202,6 @@ func (p *goPool) dispatch() {
 		workerIndex := p.popWorker()
 		p.workers[workerIndex].taskQueue <- t
 	}
-}
-
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
 }
 
 // Running returns the number of workers that are currently working.

@@ -33,12 +33,12 @@ func (w *worker) start(pool *goPool, workerIndex int) {
 
 // executeTask executes a task and returns the result and error.
 // If the task fails, it will be retried according to the retryCount of the pool.
-func (w *worker) executeTask(t task, pool *goPool) (result interface{}, err error) {
+func (w *worker) executeTask(t task, pool *goPool) (result any, err error) {
 	for i := 0; i <= pool.retryCount; i++ {
 		if pool.timeout > 0 {
 			result, err = w.executeTaskWithTimeout(t, pool)
 		} else {
-			result, err = w.executeTaskWithoutTimeout(t, pool)
+			result, err = w.executeTaskWithoutTimeout(t)
 		}
 		if err == nil || i == pool.retryCount {
 			return result, err
@@ -48,13 +48,13 @@ func (w *worker) executeTask(t task, pool *goPool) (result interface{}, err erro
 }
 
 // executeTaskWithTimeout executes a task with a timeout and returns the result and error.
-func (w *worker) executeTaskWithTimeout(t task, pool *goPool) (result interface{}, err error) {
+func (w *worker) executeTaskWithTimeout(t task, pool *goPool) (result any, err error) {
 	// Create a context with timeout
 	ctx, cancel := context.WithTimeout(context.Background(), pool.timeout)
 	defer cancel()
 
 	// Create a channel to receive the result of the task
-	resultChan := make(chan interface{})
+	resultChan := make(chan any)
 	errChan := make(chan error)
 
 	// Run the task in a separate goroutine
@@ -81,13 +81,13 @@ func (w *worker) executeTaskWithTimeout(t task, pool *goPool) (result interface{
 	}
 }
 
-func (w *worker) executeTaskWithoutTimeout(t task, pool *goPool) (result interface{}, err error) {
+func (w *worker) executeTaskWithoutTimeout(t task) (result any, err error) {
 	// If timeout is not set or is zero, just run the task
 	return t()
 }
 
 // handleResult handles the result of a task.
-func (w *worker) handleResult(result interface{}, err error, pool *goPool) {
+func (w *worker) handleResult(result any, err error, pool *goPool) {
 	if err != nil && pool.errorCallback != nil {
 		pool.errorCallback(err)
 	} else if pool.resultCallback != nil {
