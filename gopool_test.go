@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/daniel-hutao/spinlock"
-	"github.com/devchat-ai/gopool"
+	"github.com/morsuning/gopool"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
