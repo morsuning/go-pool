@@ -1,23 +1,25 @@
-# Binaries for programs and plugins
+# 程序和插件的二进制文件
 *.exe
 *.exe~
 *.dll
 *.so
 *.dylib
 
-# Test binary, built with `go test -c`
+# 测试二进制文件，使用 `go test -c` 构建
 *.test
 
-# Output of the go coverage tool, specifically when used with LiteIDE
+# go coverage 工具的输出，特别是在使用 LiteIDE 时
 *.out
 
-# IDE files
+# IDE 文件
 .idea
 .vscode
 *.iml
 .chat
+docs
 
-# Compiled Object files, Static and Dynamic libs (Shared Objects)
+# 编译的对象文件，静态和动态库（共享对象）
 *.o
 *.a
 *.so
+

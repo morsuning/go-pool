@@ -13,8 +13,8 @@ import (
 )
 
 var _ = Describe("Gopool", func() {
-	Describe("With Mutex", func() {
-		It("should work correctly", func() {
+	Describe("使用互斥锁", func() {
+		It("应该正确工作", func() {
 			pool := gopool.NewGoPool(100, gopool.WithLock(new(sync.Mutex)))
 			defer pool.Release()
 			for i := 0; i < 1000; i++ {
@@ -27,8 +27,8 @@ var _ = Describe("Gopool", func() {
 		})
 	})
 
-	Describe("With SpinLock", func() {
-		It("should work correctly", func() {
+	Describe("使用自旋锁", func() {
+		It("应该正确工作", func() {
 			pool := gopool.NewGoPool(100, gopool.WithLock(new(spinlock.SpinLock)))
 			defer pool.Release()
 			for i := 0; i < 1000; i++ {
@@ -41,8 +41,8 @@ var _ = Describe("Gopool", func() {
 		})
 	})
 
-	Describe("With Error", func() {
-		It("should work correctly", func() {
+	Describe("处理错误", func() {
+		It("应该正确工作", func() {
 			var errTaskError = errors.New("task error")
 			pool := gopool.NewGoPool(100, gopool.WithErrorCallback(func(err error) {
 				Expect(err).To(Equal(errTaskError))
@@ -58,8 +58,8 @@ var _ = Describe("Gopool", func() {
 		})
 	})
 
-	Describe("With Result", func() {
-		It("should work correctly", func() {
+	Describe("处理结果", func() {
+		It("应该正确工作", func() {
 			var expectedResult = "task result"
 			pool := gopool.NewGoPool(100, gopool.WithResultCallback(func(result any) {
 				Expect(result).To(Equal(expectedResult))
@@ -75,8 +75,8 @@ var _ = Describe("Gopool", func() {
 		})
 	})
 
-	Describe("With Retry", func() {
-		It("should work correctly", func() {
+	Describe("带有重试", func() {
+		It("应该正确工作", func() {
 			var retryCount = int32(3)
 			var taskError = errors.New("task error")
 			var taskRunCount int32 = 0
@@ -98,12 +98,12 @@ var _ = Describe("Gopool", func() {
 		})
 	})
 
-	Describe("With Timeout", func() {
-		It("should work correctly", func() {
+	Describe("带有超时", func() {
+		It("应该正确工作", func() {
 			var taskRun int32
 
 			pool := gopool.NewGoPool(100, gopool.WithTimeout(100*time.Millisecond), gopool.WithErrorCallback(func(err error) {
-				Expect(err.Error()).To(Equal("task timed out"))
+				Expect(err.Error()).To(Equal("任务超时"))
 				atomic.StoreInt32(&taskRun, 1)
 			}))
 			defer pool.Release()
@@ -119,8 +119,8 @@ var _ = Describe("Gopool", func() {
 		})
 	})
 
-	Describe("With MinWorkers", func() {
-		It("should work correctly", func() {
+	Describe("设置最小工作者数量", func() {
+		It("应该正确工作", func() {
 			var minWorkers = 50
 
 			pool := gopool.NewGoPool(100, gopool.WithMinWorkers(minWorkers))
@@ -130,8 +130,8 @@ var _ = Describe("Gopool", func() {
 		})
 	})
 
-	Describe("With TaskQueueSize", func() {
-		It("should work correctly", func() {
+	Describe("设置任务队列大小", func() {
+		It("应该正确工作", func() {
 			size := 5000
 			pool := gopool.NewGoPool(100, gopool.WithTaskQueueSize(size))
 			defer pool.Release()

@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-// worker represents a worker in the pool.
+// worker 代表池中的一个工作者。
 type worker struct {
 	taskQueue chan task
 }
@@ -16,23 +16,36 @@ func newWorker() *worker {
 	}
 }
 
-// start starts the worker in a separate goroutine.
-// The worker will run tasks from its taskQueue until the taskQueue is closed.
-// For the length of the taskQueue is 1, the worker will be pushed back to the pool after executing 1 task.
+// start 在单独的 goroutine 中启动工作者。
+// 工作者将从其 taskQueue 运行任务，直到 taskQueue 关闭。
+// 因为 taskQueue 的长度为 1，工作者在执行完 1 个任务后将被推回池中。
 func (w *worker) start(pool *goPool, workerIndex int) {
 	go func() {
 		for t := range w.taskQueue {
 			if t != nil {
-				result, err := w.executeTask(t, pool)
-				w.handleResult(result, err, pool)
+				func() {
+					defer func() {
+						if r := recover(); r != nil {
+							var err error
+							if e, ok := r.(error); ok {
+								err = e
+							} else {
+								err = fmt.Errorf("工作者发生 panic: %v", r)
+							}
+							w.handleResult(nil, err, pool)
+						}
+					}()
+					result, err := w.executeTask(t, pool)
+					w.handleResult(result, err, pool)
+				}()
 			}
 			pool.pushWorker(workerIndex)
 		}
 	}()
 }
 
-// executeTask executes a task and returns the result and error.
-// If the task fails, it will be retried according to the retryCount of the pool.
+// executeTask 执行任务并返回结果和错误。
+// 如果任务失败，它将根据池的 retryCount 进行重试。
 func (w *worker) executeTask(t task, pool *goPool) (result any, err error) {
 	for i := 0; i <= pool.retryCount; i++ {
 		if pool.timeout > 0 {
@@ -47,46 +60,45 @@ func (w *worker) executeTask(t task, pool *goPool) (result any, err error) {
 	return
 }
 
-// executeTaskWithTimeout executes a task with a timeout and returns the result and error.
+// executeTaskWithTimeout 执行带有超时的任务并返回结果和错误。
 func (w *worker) executeTaskWithTimeout(t task, pool *goPool) (result any, err error) {
-	// Create a context with timeout
+	// 创建一个带有超时的 context
 	ctx, cancel := context.WithTimeout(context.Background(), pool.timeout)
 	defer cancel()
-
-	// Create a channel to receive the result of the task
+	// 创建一个通道来接收任务的结果
 	resultChan := make(chan any)
 	errChan := make(chan error)
 
-	// Run the task in a separate goroutine
+	// 在单独的 goroutine 中运行任务
 	go func() {
 		res, err := t()
 		select {
 		case resultChan <- res:
 		case errChan <- err:
 		case <-ctx.Done():
-			// The context was cancelled, stop the task
+			// context 被取消，停止任务
 			return
 		}
 	}()
 
-	// Wait for the task to finish or for the context to timeout
+	// 等待任务完成或 context 超时
 	select {
 	case result = <-resultChan:
 		err = <-errChan
-		// The task finished successfully
+		// 任务成功完成
 		return result, err
 	case <-ctx.Done():
-		// The context timed out, the task took too long
-		return nil, fmt.Errorf("task timed out")
+		// context 超时，任务耗时太长
+		return nil, fmt.Errorf("任务超时")
 	}
 }
 
 func (w *worker) executeTaskWithoutTimeout(t task) (result any, err error) {
-	// If timeout is not set or is zero, just run the task
+	// 如果未设置超时或为 0，则直接运行任务
 	return t()
 }
 
-// handleResult handles the result of a task.
+// handleResult 处理任务的结果。
 func (w *worker) handleResult(result any, err error, pool *goPool) {
 	if err != nil && pool.errorCallback != nil {
 		pool.errorCallback(err)

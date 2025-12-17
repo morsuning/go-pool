@@ -9,5 +9,5 @@ import (
 
 func TestGopool(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "GoPool Suite")
+	RunSpecs(t, "GoPool 测试套件")
 }

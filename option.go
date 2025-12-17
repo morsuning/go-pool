@@ -5,10 +5,10 @@ import (
 	"time"
 )
 
-// Option represents an option for the pool.
+// Option 代表池的一个选项。
 type Option func(*goPool)
 
-// WithLock sets the lock for the pool.
+// WithLock 设置池的锁。
 func WithLock(lock sync.Locker) Option {
 	return func(p *goPool) {
 		p.lock = lock
@@ -16,42 +16,42 @@ func WithLock(lock sync.Locker) Option {
 	}
 }
 
-// WithMinWorkers sets the minimum number of workers for the pool.
+// WithMinWorkers 设置池的最小工作者数量。
 func WithMinWorkers(minWorkers int) Option {
 	return func(p *goPool) {
 		p.minWorkers = minWorkers
 	}
 }
 
-// WithTimeout sets the timeout for the pool.
+// WithTimeout 设置池的超时时间。
 func WithTimeout(timeout time.Duration) Option {
 	return func(p *goPool) {
 		p.timeout = timeout
 	}
 }
 
-// WithResultCallback sets the result callback for the pool.
+// WithResultCallback 设置池的结果回调。
 func WithResultCallback(callback func(any)) Option {
 	return func(p *goPool) {
 		p.resultCallback = callback
 	}
 }
 
-// WithErrorCallback sets the error callback for the pool.
+// WithErrorCallback 设置池的错误回调。
 func WithErrorCallback(callback func(error)) Option {
 	return func(p *goPool) {
 		p.errorCallback = callback
 	}
 }
 
-// WithRetryCount sets the retry count for the pool.
+// WithRetryCount 设置池的重试次数。
 func WithRetryCount(retryCount int) Option {
 	return func(p *goPool) {
 		p.retryCount = retryCount
 	}
 }
 
-// WithTaskQueueSize sets the size of the task queue for the pool.
+// WithTaskQueueSize 设置池的任务队列大小。
 func WithTaskQueueSize(size int) Option {
 	return func(p *goPool) {
 		p.taskQueueSize = size

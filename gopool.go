@@ -8,60 +8,60 @@ import (
 )
 
 type GoPool interface {
-	// AddTask adds a task to the pool.
+	// AddTask 向池中添加一个任务。
 	AddTask(t task)
-	// Wait waits for all tasks to be dispatched and completed.
+	// Wait 等待所有任务被分发并完成。
 	Wait()
-	// Release the pool and all its workers.
+	// Release 释放池及其所有工作者。
 	Release()
-	// GetRunning returns the number of running workers.
+	// GetRunning 返回正在运行的工作者数量。
 	Running() int
-	// GetWorkerCount returns the number of workers.
+	// GetWorkerCount 返回工作者的总数量。
 	GetWorkerCount() int
-	// GetTaskQueueSize returns the size of the task queue.
+	// GetTaskQueueSize 返回任务队列的大小。
 	GetTaskQueueSize() int
 }
 
-// task represents a function that will be executed by a worker.
-// It returns a result and an error.
+// task 代表将被工作者执行的函数。
+// 它返回一个结果和一个错误。
 type task func() (any, error)
 
-// goPool represents a pool of workers.
+// goPool 代表一个工作者池。
 type goPool struct {
 	workers     []*worker
 	workerStack []int
 	maxWorkers  int
-	// Set by WithMinWorkers(), used to adjust the number of workers. Default equals to maxWorkers.
+	// 由 WithMinWorkers() 设置，用于调整工作者数量。默认等于 maxWorkers。
 	minWorkers int
-	// tasks are added to this channel first, then dispatched to workers. Default buffer size is 1 million.
+	// 任务首先被添加到这个通道，然后分发给工作者。默认缓冲区大小为 100 万。
 	taskQueue chan task
-	// Set by WithTaskQueueSize(), used to set the size of the task queue. Default is 1e6.
+	// 由 WithTaskQueueSize() 设置，用于设置任务队列的大小。默认为 1e6。
 	taskQueueSize int
-	// Set by WithRetryCount(), used to retry a task when it fails. Default is 0.
+	// 由 WithRetryCount() 设置，用于在任务失败时重试。默认为 0。
 	retryCount int
 	lock       sync.Locker
 	cond       *sync.Cond
-	// Set by WithTimeout(), used to set a timeout for a task. Default is 0, which means no timeout.
+	// 由 WithTimeout() 设置，用于设置任务的超时时间。默认为 0，意味着没有超时。
 	timeout time.Duration
-	// Set by WithResultCallback(), used to handle the result of a task. Default is nil.
+	// 由 WithResultCallback() 设置，用于处理任务的结果。默认为 nil。
 	resultCallback func(any)
-	// Set by WithErrorCallback(), used to handle the error of a task. Default is nil.
+	// 由 WithErrorCallback() 设置，用于处理任务的错误。默认为 nil。
 	errorCallback func(error)
-	// adjustInterval is the interval to adjust the number of workers. Default is 1 second.
+	// adjustInterval 是调整工作者数量的时间间隔。默认为 1 秒。
 	adjustInterval time.Duration
 	ctx            context.Context
-	// cancel is used to cancel the context. It is called when Release() is called.
+	// cancel 用于取消上下文。当调用 Release() 时会被调用。
 	cancel context.CancelFunc
 }
 
-// NewGoPool creates a new pool of workers.
+// NewGoPool 创建一个新的工作者池。
 func NewGoPool(maxWorkers int, opts ...Option) GoPool {
 	ctx, cancel := context.WithCancel(context.Background())
 	pool := &goPool{
 		maxWorkers: maxWorkers,
-		// Set minWorkers to maxWorkers by default
+		// 默认将 minWorkers 设置为 maxWorkers
 		minWorkers: maxWorkers,
-		// workers and workerStack should be initialized after WithMinWorkers() is called
+		// workers 和 workerStack 应该在调用 WithMinWorkers() 之后初始化
 		workers:        nil,
 		workerStack:    nil,
 		taskQueue:      nil,
@@ -73,7 +73,7 @@ func NewGoPool(maxWorkers int, opts ...Option) GoPool {
 		ctx:            ctx,
 		cancel:         cancel,
 	}
-	// Apply options
+	// 应用选项
 	for _, opt := range opts {
 		opt(pool)
 	}
@@ -85,7 +85,7 @@ func NewGoPool(maxWorkers int, opts ...Option) GoPool {
 	if pool.cond == nil {
 		pool.cond = sync.NewCond(pool.lock)
 	}
-	// Create workers with the minimum number. Don't use pushWorker() here.
+	// 使用最小数量创建工作者。这里不要使用 pushWorker()。
 	for i := 0; i < pool.minWorkers; i++ {
 		worker := newWorker()
 		pool.workers[i] = worker
@@ -97,12 +97,12 @@ func NewGoPool(maxWorkers int, opts ...Option) GoPool {
 	return pool
 }
 
-// AddTask adds a task to the pool.
+// AddTask 向池中添加一个任务。
 func (p *goPool) AddTask(t task) {
 	p.taskQueue <- t
 }
 
-// Wait waits for all tasks to be dispatched and completed.
+// Wait 等待所有任务被分发并完成。
 func (p *goPool) Wait() {
 	for {
 		p.lock.Lock()
@@ -117,7 +117,7 @@ func (p *goPool) Wait() {
 	}
 }
 
-// Release stops all workers and releases resources.
+// Release 停止所有工作者并释放资源。
 func (p *goPool) Release() {
 	close(p.taskQueue)
 	p.cancel()
@@ -148,7 +148,7 @@ func (p *goPool) pushWorker(workerIndex int) {
 	p.cond.Signal()
 }
 
-// adjustWorkers adjusts the number of workers according to the number of tasks in the queue.
+// adjustWorkers 根据队列中的任务数量调整工作者数量。
 func (p *goPool) adjustWorkers() {
 	ticker := time.NewTicker(p.adjustInterval)
 	defer ticker.Stop()
@@ -162,21 +162,21 @@ func (p *goPool) adjustWorkers() {
 			p.cond.L.Lock()
 			if len(p.taskQueue) > len(p.workers)*3/4 && len(p.workers) < p.maxWorkers {
 				adjustFlag = true
-				// Double the number of workers until it reaches the maximum
+				// 将工作者数量翻倍，直到达到最大值
 				newWorkers := min(len(p.workers)*2, p.maxWorkers) - len(p.workers)
 				for i := 0; i < newWorkers; i++ {
 					worker := newWorker()
 					p.workers = append(p.workers, worker)
-					// Don't use len(p.workerStack)-1 here, because it will be less than len(p.workers)-1 when the pool is busy
+					// 这里不要使用 len(p.workerStack)-1，因为当池繁忙时它会小于 len(p.workers)-1
 					p.workerStack = append(p.workerStack, len(p.workers)-1)
 					worker.start(p, len(p.workers)-1)
 				}
 			} else if len(p.taskQueue) == 0 && len(p.workerStack) == len(p.workers) && len(p.workers) > p.minWorkers {
 				adjustFlag = true
-				// Halve the number of workers until it reaches the minimum
+				// 将工作者数量减半，直到达到最小值
 				removeWorkers := (len(p.workers) - p.minWorkers + 1) / 2
-				// Sort the workerStack before removing workers.
-				// [1,2,3,4,5] -working-> [1,2,3] -expansive-> [1,2,3,6,7] -idle-> [1,2,3,6,7,4,5]
+				// 在移除工作者之前对 workerStack 进行排序。
+				// [1,2,3,4,5] -工作-> [1,2,3] -扩容-> [1,2,3,6,7] -空闲-> [1,2,3,6,7,4,5]
 				sort.Ints(p.workerStack)
 				p.workers = p.workers[:len(p.workers)-removeWorkers]
 				p.workerStack = p.workerStack[:len(p.workerStack)-removeWorkers]
@@ -191,7 +191,7 @@ func (p *goPool) adjustWorkers() {
 	}
 }
 
-// dispatch dispatches tasks to workers.
+// dispatch 将任务分发给工作者。
 func (p *goPool) dispatch() {
 	for t := range p.taskQueue {
 		p.cond.L.Lock()
@@ -204,21 +204,21 @@ func (p *goPool) dispatch() {
 	}
 }
 
-// Running returns the number of workers that are currently working.
+// Running 返回当前正在工作的工作者数量。
 func (p *goPool) Running() int {
 	p.lock.Lock()
 	defer p.lock.Unlock()
 	return len(p.workers) - len(p.workerStack)
 }
 
-// GetWorkerCount returns the number of workers in the pool.
+// GetWorkerCount 返回池中的工作者数量。
 func (p *goPool) GetWorkerCount() int {
 	p.lock.Lock()
 	defer p.lock.Unlock()
 	return len(p.workers)
 }
 
-// GetTaskQueueSize returns the size of the task queue.
+// GetTaskQueueSize 返回任务队列的大小。
 func (p *goPool) GetTaskQueueSize() int {
 	p.lock.Lock()
 	defer p.lock.Unlock()

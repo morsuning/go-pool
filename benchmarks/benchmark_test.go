@@ -1,4 +1,4 @@
-package gopool
+package benchmarks
 
 import (
 	"sync"
@@ -7,6 +7,7 @@ import (
 
 	"github.com/alitto/pond"
 	"github.com/daniel-hutao/spinlock"
+	"github.com/morsuning/gopool"
 	"github.com/panjf2000/ants/v2"
 )
 
@@ -16,7 +17,7 @@ const (
 )
 
 func BenchmarkGoPool(b *testing.B) {
-	pool := NewGoPool(PoolSize)
+	pool := gopool.NewGoPool(PoolSize)
 	defer pool.Release()
 
 	taskFunc := func() (any, error) {
@@ -35,7 +36,7 @@ func BenchmarkGoPool(b *testing.B) {
 }
 
 func BenchmarkGoPoolWithSpinLock(b *testing.B) {
-	pool := NewGoPool(PoolSize, WithLock(new(spinlock.SpinLock)))
+	pool := gopool.NewGoPool(PoolSize, gopool.WithLock(new(spinlock.SpinLock)))
 	defer pool.Release()
 
 	taskFunc := func() (any, error) {
