@@ -1,4 +1,4 @@
-package gopool_test
+package lifopool_test
 
 import (
 	"testing"
@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestGopool(t *testing.T) {
+func TestLifopool(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "GoPool 测试套件")
+	RunSpecs(t, "LifoPool 测试套件")
 }

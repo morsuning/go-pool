@@ -1,4 +1,4 @@
-package gopool_test
+package lifopool_test
 
 import (
 	"errors"
@@ -7,15 +7,15 @@ import (
 	"time"
 
 	"github.com/daniel-hutao/spinlock"
-	"github.com/morsuning/gopool"
+	"github.com/morsuning/lifopool"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("Gopool", func() {
+var _ = Describe("LifoPool", func() {
 	Describe("使用互斥锁", func() {
 		It("应该正确工作", func() {
-			pool := gopool.NewGoPool(100, gopool.WithLock(new(sync.Mutex)))
+			pool := lifopool.New(100, lifopool.WithLock(new(sync.Mutex)))
 			defer pool.Release()
 			for i := 0; i < 1000; i++ {
 				pool.AddTask(func() (any, error) {
@@ -29,7 +29,7 @@ var _ = Describe("Gopool", func() {
 
 	Describe("使用自旋锁", func() {
 		It("应该正确工作", func() {
-			pool := gopool.NewGoPool(100, gopool.WithLock(new(spinlock.SpinLock)))
+			pool := lifopool.New(100, lifopool.WithLock(new(spinlock.SpinLock)))
 			defer pool.Release()
 			for i := 0; i < 1000; i++ {
 				pool.AddTask(func() (any, error) {
@@ -44,7 +44,7 @@ var _ = Describe("Gopool", func() {
 	Describe("处理错误", func() {
 		It("应该正确工作", func() {
 			var errTaskError = errors.New("task error")
-			pool := gopool.NewGoPool(100, gopool.WithErrorCallback(func(err error) {
+			pool := lifopool.New(100, lifopool.WithErrorCallback(func(err error) {
 				Expect(err).To(Equal(errTaskError))
 			}))
 			defer pool.Release()
@@ -61,7 +61,7 @@ var _ = Describe("Gopool", func() {
 	Describe("处理结果", func() {
 		It("应该正确工作", func() {
 			var expectedResult = "task result"
-			pool := gopool.NewGoPool(100, gopool.WithResultCallback(func(result any) {
+			pool := lifopool.New(100, lifopool.WithResultCallback(func(result any) {
 				Expect(result).To(Equal(expectedResult))
 			}))
 			defer pool.Release()
@@ -81,7 +81,7 @@ var _ = Describe("Gopool", func() {
 			var taskError = errors.New("task error")
 			var taskRunCount int32 = 0
 
-			pool := gopool.NewGoPool(100, gopool.WithRetryCount(int(retryCount)))
+			pool := lifopool.New(100, lifopool.WithRetryCount(int(retryCount)))
 			defer pool.Release()
 
 			pool.AddTask(func() (any, error) {
@@ -102,7 +102,7 @@ var _ = Describe("Gopool", func() {
 		It("应该正确工作", func() {
 			var taskRun int32
 
-			pool := gopool.NewGoPool(100, gopool.WithTimeout(100*time.Millisecond), gopool.WithErrorCallback(func(err error) {
+			pool := lifopool.New(100, lifopool.WithTimeout(100*time.Millisecond), lifopool.WithErrorCallback(func(err error) {
 				Expect(err.Error()).To(Equal("任务超时"))
 				atomic.StoreInt32(&taskRun, 1)
 			}))
@@ -123,7 +123,7 @@ var _ = Describe("Gopool", func() {
 		It("应该正确工作", func() {
 			var minWorkers = 50
 
-			pool := gopool.NewGoPool(100, gopool.WithMinWorkers(minWorkers))
+			pool := lifopool.New(100, lifopool.WithMinWorkers(minWorkers))
 			defer pool.Release()
 
 			Expect(pool.GetWorkerCount()).To(Equal(minWorkers))
@@ -133,7 +133,7 @@ var _ = Describe("Gopool", func() {
 	Describe("设置任务队列大小", func() {
 		It("应该正确工作", func() {
 			size := 5000
-			pool := gopool.NewGoPool(100, gopool.WithTaskQueueSize(size))
+			pool := lifopool.New(100, lifopool.WithTaskQueueSize(size))
 			defer pool.Release()
 
 			Expect(pool.GetTaskQueueSize()).To(Equal(size))

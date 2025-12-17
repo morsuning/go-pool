@@ -7,7 +7,7 @@ import (
 
 	"github.com/alitto/pond"
 	"github.com/daniel-hutao/spinlock"
-	"github.com/morsuning/gopool"
+	"github.com/morsuning/lifopool"
 	"github.com/panjf2000/ants/v2"
 )
 
@@ -16,8 +16,8 @@ const (
 	TaskNum  = 1e6
 )
 
-func BenchmarkGoPool(b *testing.B) {
-	pool := gopool.NewGoPool(PoolSize)
+func BenchmarkLifoPool(b *testing.B) {
+	pool := lifopool.New(PoolSize)
 	defer pool.Release()
 
 	taskFunc := func() (any, error) {
@@ -35,8 +35,8 @@ func BenchmarkGoPool(b *testing.B) {
 	b.StopTimer()
 }
 
-func BenchmarkGoPoolWithSpinLock(b *testing.B) {
-	pool := gopool.NewGoPool(PoolSize, gopool.WithLock(new(spinlock.SpinLock)))
+func BenchmarkLifoPoolWithSpinLock(b *testing.B) {
+	pool := lifopool.New(PoolSize, lifopool.WithLock(new(spinlock.SpinLock)))
 	defer pool.Release()
 
 	taskFunc := func() (any, error) {

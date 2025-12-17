@@ -1,13 +1,13 @@
-# Go-Pool
+# LifoPool
 
 <p align="center">
-  <img src="https://socialify.git.ci/morsuning/go-pool/image?description=1&font=Inter&language=1&name=1&owner=1&pattern=Circuit%20Board&theme=Auto" alt="go-pool" width="640" height="320" />
+  <img src="https://socialify.git.ci/morsuning/lifopool/image?description=1&font=Inter&language=1&name=1&owner=1&pattern=Circuit%20Board&theme=Auto" alt="go-pool" width="640" height="320" />
 </p>
 
 <p align="center">
-    <a href="https://pkg.go.dev/github.com/morsuning/go-pool"><img src="https://pkg.go.dev/badge/github.com/morsuning/go-pool.svg" alt="GoDoc"></a>
-    <a href="https://goreportcard.com/report/github.com/morsuning/go-pool"><img src="https://goreportcard.com/badge/github.com/morsuning/go-pool" alt="Go Report Card"></a>
-    <a href="LICENSE"><img src="https://img.shields.io/github/license/morsuning/go-pool" alt="License"></a>
+    <a href="https://pkg.go.dev/github.com/morsuning/lifopool"><img src="https://pkg.go.dev/badge/github.com/morsuning/lifopool.svg" alt="GoDoc"></a>
+    <a href="https://goreportcard.com/report/github.com/morsuning/lifopool"><img src="https://goreportcard.com/badge/github.com/morsuning/lifopool" alt="Go Report Card"></a>
+    <a href="LICENSE"><img src="https://img.shields.io/github/license/morsuning/lifopool" alt="License"></a>
 </p>
 
 <p align="center">
@@ -22,7 +22,7 @@
 
 ## 🚀 Introduction
 
-`go-pool` is a library designed to manage specific goroutine workers to handle tasks concurrently. It reuses goroutines to limit concurrency, reduce resource consumption, and improve the stability and performance of your applications.
+`lifopool` is a library designed to manage specific goroutine workers to handle tasks concurrently. It reuses goroutines to limit concurrency, reduce resource consumption, and improve the stability and performance of your applications.
 
 Key differentiators:
 *   **LIFO Scheduling**: Improves CPU cache locality by prioritizing recently used workers.
@@ -31,11 +31,11 @@ Key differentiators:
 
 ## 📊 Benchmarks
 
-`go-pool` is optimized for speed and efficiency. Below are benchmark results comparing it with other popular libraries (`ants`, `pond`) and raw goroutines.
+`lifopool` is optimized for speed and efficiency. Below are benchmark results comparing it with other popular libraries (`ants`, `pond`) and raw goroutines.
 
 | Library | Optimization | Time (ns/op) | Memory (B/op) | Allocations (allocs/op) |
 | :--- | :--- | :--- | :--- | :--- |
-| **go-pool** | Default | **1,114,703,667** | **2,757,944** | **14,906** |
+| **lifopool** | Default | **1,114,703,667** | **2,757,944** | **14,906** |
 | [ants](https://github.com/panjf2000/ants) | - | 1,141,786,333 | 4,533,200 | 59,463 |
 | [pond](https://github.com/alitto/pond) | - | 1,479,714,792 | 1,035,432 | 10,788 |
 | *Raw Goroutines* | *None* | *336,763,680* | *128,759,930* | *3,007,120* |
@@ -59,7 +59,7 @@ Key differentiators:
 ## 📦 Installation
 
 ```bash
-go get -u github.com/morsuning/go-pool
+go get -u github.com/morsuning/lifopool
 ```
 
 ## ⚡ Quick Start
@@ -72,16 +72,16 @@ package main
 import (
     "fmt"
     "time"
-    "github.com/morsuning/go-pool"
+    "github.com/morsuning/lifopool"
 )
 
 func main() {
-    pool := gopool.NewGoPool(100)
+    pool := lifopool.New(100)
     defer pool.Release()
 
     pool.AddTask(func() (any, error) {
         time.Sleep(10 * time.Millisecond)
-        fmt.Println("Hello, go-pool!")
+        fmt.Println("Hello, lifopool!")
         return nil, nil
     })
     
@@ -93,7 +93,7 @@ See [examples/](examples/) for more usage patterns, including Custom Locks and T
 
 ## ⚙️ Configuration
 
-`NewGoPool` accepts functional options to tailor behavior:
+`lifopool.New` accepts functional options to tailor behavior:
 
 | Option | Description | Default |
 | :--- | :--- | :--- |

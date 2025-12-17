@@ -1,4 +1,4 @@
-package gopool
+package lifopool
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-type GoPool interface {
+type Pool interface {
 	// AddTask 向池中添加一个任务。
 	AddTask(t task)
 	// Wait 等待所有任务被分发并完成。
@@ -27,7 +27,7 @@ type GoPool interface {
 type task func() (any, error)
 
 // goPool 代表一个工作者池。
-type goPool struct {
+type lifoPool struct {
 	workers     []*worker
 	workerStack []int
 	maxWorkers  int
@@ -55,9 +55,9 @@ type goPool struct {
 }
 
 // NewGoPool 创建一个新的工作者池。
-func NewGoPool(maxWorkers int, opts ...Option) GoPool {
+func New(maxWorkers int, opts ...Option) Pool {
 	ctx, cancel := context.WithCancel(context.Background())
-	pool := &goPool{
+	pool := &lifoPool{
 		maxWorkers: maxWorkers,
 		// 默认将 minWorkers 设置为 maxWorkers
 		minWorkers: maxWorkers,
@@ -98,12 +98,12 @@ func NewGoPool(maxWorkers int, opts ...Option) GoPool {
 }
 
 // AddTask 向池中添加一个任务。
-func (p *goPool) AddTask(t task) {
+func (p *lifoPool) AddTask(t task) {
 	p.taskQueue <- t
 }
 
 // Wait 等待所有任务被分发并完成。
-func (p *goPool) Wait() {
+func (p *lifoPool) Wait() {
 	for {
 		p.lock.Lock()
 		workerStackLen := len(p.workerStack)
@@ -118,7 +118,7 @@ func (p *goPool) Wait() {
 }
 
 // Release 停止所有工作者并释放资源。
-func (p *goPool) Release() {
+func (p *lifoPool) Release() {
 	close(p.taskQueue)
 	p.cancel()
 	p.cond.L.Lock()
@@ -133,7 +133,7 @@ func (p *goPool) Release() {
 	p.workerStack = nil
 }
 
-func (p *goPool) popWorker() int {
+func (p *lifoPool) popWorker() int {
 	p.lock.Lock()
 	workerIndex := p.workerStack[len(p.workerStack)-1]
 	p.workerStack = p.workerStack[:len(p.workerStack)-1]
@@ -141,7 +141,7 @@ func (p *goPool) popWorker() int {
 	return workerIndex
 }
 
-func (p *goPool) pushWorker(workerIndex int) {
+func (p *lifoPool) pushWorker(workerIndex int) {
 	p.lock.Lock()
 	p.workerStack = append(p.workerStack, workerIndex)
 	p.lock.Unlock()
@@ -149,7 +149,7 @@ func (p *goPool) pushWorker(workerIndex int) {
 }
 
 // adjustWorkers 根据队列中的任务数量调整工作者数量。
-func (p *goPool) adjustWorkers() {
+func (p *lifoPool) adjustWorkers() {
 	ticker := time.NewTicker(p.adjustInterval)
 	defer ticker.Stop()
 
@@ -192,7 +192,7 @@ func (p *goPool) adjustWorkers() {
 }
 
 // dispatch 将任务分发给工作者。
-func (p *goPool) dispatch() {
+func (p *lifoPool) dispatch() {
 	for t := range p.taskQueue {
 		p.cond.L.Lock()
 		for len(p.workerStack) == 0 {
@@ -205,21 +205,21 @@ func (p *goPool) dispatch() {
 }
 
 // Running 返回当前正在工作的工作者数量。
-func (p *goPool) Running() int {
+func (p *lifoPool) Running() int {
 	p.lock.Lock()
 	defer p.lock.Unlock()
 	return len(p.workers) - len(p.workerStack)
 }
 
 // GetWorkerCount 返回池中的工作者数量。
-func (p *goPool) GetWorkerCount() int {
+func (p *lifoPool) GetWorkerCount() int {
 	p.lock.Lock()
 	defer p.lock.Unlock()
 	return len(p.workers)
 }
 
 // GetTaskQueueSize 返回任务队列的大小。
-func (p *goPool) GetTaskQueueSize() int {
+func (p *lifoPool) GetTaskQueueSize() int {
 	p.lock.Lock()
 	defer p.lock.Unlock()
 	return p.taskQueueSize

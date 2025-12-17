@@ -16,7 +16,7 @@
 .vscode
 *.iml
 .chat
-docs
+.docs
 
 # 编译的对象文件，静态和动态库（共享对象）
 *.o

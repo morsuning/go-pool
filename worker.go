@@ -1,4 +1,4 @@
-package gopool
+package lifopool
 
 import (
 	"context"
@@ -19,7 +19,7 @@ func newWorker() *worker {
 // start 在单独的 goroutine 中启动工作者。
 // 工作者将从其 taskQueue 运行任务，直到 taskQueue 关闭。
 // 因为 taskQueue 的长度为 1，工作者在执行完 1 个任务后将被推回池中。
-func (w *worker) start(pool *goPool, workerIndex int) {
+func (w *worker) start(pool *lifoPool, workerIndex int) {
 	go func() {
 		for t := range w.taskQueue {
 			if t != nil {
@@ -46,7 +46,7 @@ func (w *worker) start(pool *goPool, workerIndex int) {
 
 // executeTask 执行任务并返回结果和错误。
 // 如果任务失败，它将根据池的 retryCount 进行重试。
-func (w *worker) executeTask(t task, pool *goPool) (result any, err error) {
+func (w *worker) executeTask(t task, pool *lifoPool) (result any, err error) {
 	for i := 0; i <= pool.retryCount; i++ {
 		if pool.timeout > 0 {
 			result, err = w.executeTaskWithTimeout(t, pool)
@@ -61,7 +61,7 @@ func (w *worker) executeTask(t task, pool *goPool) (result any, err error) {
 }
 
 // executeTaskWithTimeout 执行带有超时的任务并返回结果和错误。
-func (w *worker) executeTaskWithTimeout(t task, pool *goPool) (result any, err error) {
+func (w *worker) executeTaskWithTimeout(t task, pool *lifoPool) (result any, err error) {
 	// 创建一个带有超时的 context
 	ctx, cancel := context.WithTimeout(context.Background(), pool.timeout)
 	defer cancel()
@@ -99,7 +99,7 @@ func (w *worker) executeTaskWithoutTimeout(t task) (result any, err error) {
 }
 
 // handleResult 处理任务的结果。
-func (w *worker) handleResult(result any, err error, pool *goPool) {
+func (w *worker) handleResult(result any, err error, pool *lifoPool) {
 	if err != nil && pool.errorCallback != nil {
 		pool.errorCallback(err)
 	} else if pool.resultCallback != nil {

@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/morsuning/gopool"
+	"github.com/morsuning/lifopool"
 )
 
 func main() {
 	// Create a pool with 100 workers
 	// 创建一个包含 100 个工作者的池
-	pool := gopool.NewGoPool(100)
+	pool := lifopool.New(100)
 	defer pool.Release()
 
 	for i := 0; i < 1000; i++ {

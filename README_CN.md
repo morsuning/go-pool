@@ -1,13 +1,13 @@
-# Go-Pool
+# LifoPool
 
 <p align="center">
-  <img src="https://socialify.git.ci/morsuning/go-pool/image?description=1&font=Inter&language=1&name=1&owner=1&pattern=Circuit%20Board&theme=Auto" alt="go-pool" width="640" height="320" />
+  <img src="https://socialify.git.ci/morsuning/lifopool/image?description=1&font=Inter&language=1&name=1&owner=1&pattern=Circuit%20Board&theme=Auto" alt="go-pool" width="640" height="320" />
 </p>
 
 <p align="center">
-    <a href="https://pkg.go.dev/github.com/morsuning/go-pool"><img src="https://pkg.go.dev/badge/github.com/morsuning/go-pool.svg" alt="GoDoc"></a>
-    <a href="https://goreportcard.com/report/github.com/morsuning/go-pool"><img src="https://goreportcard.com/badge/github.com/morsuning/go-pool" alt="Go Report Card"></a>
-    <a href="LICENSE"><img src="https://img.shields.io/github/license/morsuning/go-pool" alt="License"></a>
+    <a href="https://pkg.go.dev/github.com/morsuning/lifopool"><img src="https://pkg.go.dev/badge/github.com/morsuning/lifopool.svg" alt="GoDoc"></a>
+    <a href="https://goreportcard.com/report/github.com/morsuning/lifopool"><img src="https://goreportcard.com/badge/github.com/morsuning/lifopool" alt="Go Report Card"></a>
+    <a href="LICENSE"><img src="https://img.shields.io/github/license/morsuning/lifopool" alt="License"></a>
 </p>
 
 <p align="center">
@@ -22,7 +22,7 @@
 
 ## 🚀 简介
 
-`go-pool` 是一个用于管理一组特定 goroutine 工作者来并发处理任务的库。它通过复用 goroutine 来限制并发数，降低资源消耗，并提高应用程序的稳定性和性能。
+`lifopool` 是一个用于管理一组特定 goroutine 工作者来并发处理任务的库。它通过复用 goroutine 来限制并发数，降低资源消耗，并提高应用程序的稳定性和性能。
 
 核心优势：
 *   **LIFO 调度**：通过优先使用最近活跃的工作者来提高 CPU 缓存亲和性。
@@ -31,11 +31,11 @@
 
 ## 📊 性能测试
 
-`go-pool` 专为速度和效率进行了优化。以下是与热门库（`ants`, `pond`）及原生 goroutine 的对比基准测试结果。
+`lifopool` 专为速度和效率进行了优化。以下是与热门库（`ants`, `pond`）及原生 goroutine 的对比基准测试结果。
 
 | 库 | 优化项 | 耗时 (ns/op) | 内存 (B/op) | 分配次数 (allocs/op) |
 | :--- | :--- | :--- | :--- | :--- |
-| **go-pool** | 默认 | **1,114,703,667** | **2,757,944** | **14,906** |
+| **lifopool** | 默认 | **1,114,703,667** | **2,757,944** | **14,906** |
 | [ants](https://github.com/panjf2000/ants) | - | 1,141,786,333 | 4,533,200 | 59,463 |
 | [pond](https://github.com/alitto/pond) | - | 1,479,714,792 | 1,035,432 | 10,788 |
 | *原生 Goroutine* | *无* | *336,763,680* | *128,759,930* | *3,007,120* |
@@ -59,7 +59,7 @@
 ## 📦 安装
 
 ```bash
-go get -u github.com/morsuning/go-pool
+go get -u github.com/morsuning/lifopool
 ```
 
 ## ⚡ 快速开始
@@ -72,16 +72,16 @@ package main
 import (
     "fmt"
     "time"
-    "github.com/morsuning/go-pool"
+    "github.com/morsuning/lifopool"
 )
 
 func main() {
-    pool := gopool.NewGoPool(100)
+    pool := lifopool.New(100)
     defer pool.Release()
 
     pool.AddTask(func() (any, error) {
         time.Sleep(10 * time.Millisecond)
-        fmt.Println("Hello, go-pool!")
+        fmt.Println("Hello, lifopool!")
         return nil, nil
     })
     
@@ -93,7 +93,7 @@ func main() {
 
 ## ⚙️ 配置
 
-`NewGoPool` 接受函数式选项来定制行为：
+`lifopool.New` 接受函数式选项来定制行为：
 
 | 选项 | 说明 | 默认值 |
 | :--- | :--- | :--- |
@@ -106,7 +106,7 @@ func main() {
 
 ## 🤝 贡献代码
 
-欢迎提交 Pull Request 或 [Issues](https://github.com/morsuning/go-pool/issues)！
+欢迎提交 Pull Request 或 [Issues](https://github.com/morsuning/lifopool/issues)！
 
 ## 📄 许可证
 
